@@ -34,6 +34,7 @@ class ZoozRGBWLight(hass.Hass):
             ]
         }
         
+        # Create/Update light using mqtt discovery
         light_config_topic = "homeassistant/light/{id}/config".format(id=self.unique_id)
         self.call_service("mqtt/publish", topic=light_config_topic, payload=json.dumps(light_attributes))
 
@@ -41,7 +42,7 @@ class ZoozRGBWLight(hass.Hass):
         self.log("Script initialized.")
 
     def state_changed(self, entity, attribute, old, new, kwargs):
-        self.log("{} state changed.".format(self.entity_id))
+        self.log("'{}' state changed.".format(self.entity_id))
         if new["state"] == 'on':
             effect = new['attributes'].get("effect", "Disabled")
             if old['state'] == 'on' and effect != old['attributes'].get("effect", "Disabled"):
@@ -52,18 +53,23 @@ class ZoozRGBWLight(hass.Hass):
             self.turn_off()
 
     def set_effect(self, effect):
+        self.log("Setting effect: {}".format(effect))
         value = effect.lower() if effect != "Disabled" else "preset programs disabled"
-        self.log("set_effect({})".format(value))
         self.call_service("zwave_js/set_config_parameter", entity_id=self.dimmer_main, parameter="157", value=value)
 
     def turn_on(self, attributes):
-        self.log("turn_on")
-        self.call_service("light/turn_on", entity_id=self.dimmer_main, brightness=attributes["brightness"])
-        self.call_service("light/turn_on", entity_id=self.dimmer_r, brightness=attributes["rgb_color"][0])
-        self.call_service("light/turn_on", entity_id=self.dimmer_g, brightness=attributes["rgb_color"][1])
-        self.call_service("light/turn_on", entity_id=self.dimmer_b, brightness=attributes["rgb_color"][2])
-        self.call_service("light/turn_on", entity_id=self.dimmer_w, brightness=attributes.get("white_value", 0))
+        state = {
+            "brightness": attributes["brightness"],
+            "rgb": attributes["rgb_color"],
+            "w": attributes.get("white_value", 0)
+        }
+        self.log("Turning on with {}".format(state))
+        self.call_service("light/turn_on", entity_id=self.dimmer_main, brightness=state["brightness"])
+        self.call_service("light/turn_on", entity_id=self.dimmer_r, brightness=state["rgb"][0])
+        self.call_service("light/turn_on", entity_id=self.dimmer_g, brightness=state["rgb"][1])
+        self.call_service("light/turn_on", entity_id=self.dimmer_b, brightness=state["rgb"][2])
+        self.call_service("light/turn_on", entity_id=self.dimmer_w, brightness=state["w"])
 
     def turn_off(self):
-        self.log("turn_off")
+        self.log("Turning off")
         self.call_service("light/turn_off", entity_id=self.dimmer_entities)
