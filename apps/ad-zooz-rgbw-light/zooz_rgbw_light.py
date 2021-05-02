@@ -1,5 +1,5 @@
 import appdaemon.plugins.hass.hassapi as hass
-
+import json
 
 class ZoozRGBWLight(hass.Hass):
     def initialize(self):
@@ -13,6 +13,29 @@ class ZoozRGBWLight(hass.Hass):
         self.dimmer_b = args["zooz_entities"]["b"]
         self.dimmer_w = args["zooz_entities"]["w"]
         self.dimmer_entities = [self.dimmer_main, self.dimmer_r, self.dimmer_g, self.dimmer_b, self.dimmer_w]
+
+        light_attributes = {
+            "schema": "json",
+            "name": self.light_name,
+            "unique_id": self.unique_id,
+            "icon": "mdi:led-strip-variant",
+            "command_topic": "zooz/{id}/cmd".format(id=self.unique_id),
+            "brightness": True,
+            "rgb": True,
+            "white_value": True,
+            "effect": True,
+            "effect_list": [
+                "Disabled",
+                "Fireplace",
+                "Storm",
+                "Rainbow",
+                "Polar Lights",
+                "Police"
+            ]
+        }
+        
+        light_config_topic = "homeassistant/light/{id}/config".format(id=self.unique_id)
+        self.call_service("mqtt/publish", topic=light_config_topic, payload=json.dumps(light_attributes))
 
         self.listen_state(self.state_changed, self.entity_id, attribute="all")
         self.log("Script initialized.")
