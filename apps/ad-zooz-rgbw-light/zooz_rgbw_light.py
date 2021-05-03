@@ -1,6 +1,7 @@
 import appdaemon.plugins.hass.hassapi as hass
 import json
 
+
 class ZoozRGBWLight(hass.Hass):
     def initialize(self):
         args = self.args
@@ -33,7 +34,7 @@ class ZoozRGBWLight(hass.Hass):
                 "Police"
             ]
         }
-        
+
         # Create/Update light using mqtt discovery
         light_config_topic = "homeassistant/light/{id}/config".format(id=self.unique_id)
         self.call_service("mqtt/publish", topic=light_config_topic, payload=json.dumps(light_attributes))
