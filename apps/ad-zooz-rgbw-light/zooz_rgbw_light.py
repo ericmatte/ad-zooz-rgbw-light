@@ -40,7 +40,7 @@ class ZoozRGBWLight(hass.Hass):
         self.call_service("mqtt/publish", topic=light_config_topic, payload=json.dumps(light_attributes))
 
         self.listen_state(self.state_changed, self.entity_id, attribute="all")
-        self.log("Script initialized.")
+        self.log("'{}' initialized.".format(self.entity_id))
 
     def state_changed(self, entity, attribute, old, new, kwargs):
         self.log("'{}' state changed.".format(self.entity_id))
