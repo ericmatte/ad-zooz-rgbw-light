@@ -1,6 +1,8 @@
 import appdaemon.plugins.hass.hassapi as hass
 import json
 
+from threading import Thread
+
 
 class ZoozRGBWLight(hass.Hass):
     def initialize(self):
@@ -65,11 +67,14 @@ class ZoozRGBWLight(hass.Hass):
             "w": attributes.get("white_value", 0)
         }
         self.log("Turning on with {}".format(state))
-        self.call_service("light/turn_on", entity_id=self.dimmer_main, brightness=state["brightness"])
-        self.call_service("light/turn_on", entity_id=self.dimmer_r, brightness=state["rgb"][0])
-        self.call_service("light/turn_on", entity_id=self.dimmer_g, brightness=state["rgb"][1])
-        self.call_service("light/turn_on", entity_id=self.dimmer_b, brightness=state["rgb"][2])
-        self.call_service("light/turn_on", entity_id=self.dimmer_w, brightness=state["w"])
+        self.turn_on_in_thread(self.dimmer_main, state["brightness"])
+        self.turn_on_in_thread(self.dimmer_w, state["w"])
+        self.turn_on_in_thread(self.dimmer_r, state["rgb"][0])
+        self.turn_on_in_thread(self.dimmer_g, state["rgb"][1])
+        self.turn_on_in_thread(self.dimmer_b, state["rgb"][2])
+
+    def turn_on_in_thread(self, entity, brightness):
+        Thread(target=self.call_service, args=["light/turn_on"], kwargs={"entity_id": entity, "brightness": brightness}).start()
 
     def turn_off(self):
         self.log("Turning off")
