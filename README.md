@@ -62,3 +62,24 @@ zooz_rgbw_light:
     b: light.rgbw_dimmer_b
     w: light.rgbw_dimmer_w
 ```
+
+### Changing the style of the switch
+
+[Related forum post](https://community.home-assistant.io/t/how-to-change-the-syle-of-a-switch-solved/129033/3)
+
+Since this methods uses a light in optimistic mode, the switch button will looks like this:
+
+<img src="./examples/buttons.png" width="80">
+
+In order to change this to a toggle, add this to your configuration:
+
+```yaml
+homeassistant:
+  customize_domain:
+    light:
+      assumed_state: false
+```
+
+And your switch should now looks like this:
+
+<img src="./examples/toggle.png" width="80">
