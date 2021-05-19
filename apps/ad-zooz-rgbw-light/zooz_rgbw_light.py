@@ -24,8 +24,8 @@ class ZoozRGBWLight(hass.Hass):
             "icon": "mdi:led-strip-variant",
             "command_topic": "zooz/{id}/cmd".format(id=self.unique_id),
             "brightness": True,
-            "rgb": True,
-            "white_value": True,
+            "color_mode": True,
+            "supported_color_modes": ["rgbw"],
             "effect": True,
             "effect_list": [
                 "Disabled",
@@ -62,16 +62,15 @@ class ZoozRGBWLight(hass.Hass):
 
     def turn_on(self, attributes):
         state = {
-            "brightness": attributes["brightness"],
-            "rgb": attributes["rgb_color"],
-            "w": attributes.get("white_value", 0)
+            "brightness": attributes.get("brightness", 255),
+            "rgbw": attributes.get("rgbw_color", [0, 0, 0, 255]),
         }
         self.log("Turning on with {}".format(state))
         self.turn_on_in_thread(self.dimmer_main, state["brightness"])
-        self.turn_on_in_thread(self.dimmer_w, state["w"])
-        self.turn_on_in_thread(self.dimmer_r, state["rgb"][0])
-        self.turn_on_in_thread(self.dimmer_g, state["rgb"][1])
-        self.turn_on_in_thread(self.dimmer_b, state["rgb"][2])
+        self.turn_on_in_thread(self.dimmer_r, state["rgbw"][0])
+        self.turn_on_in_thread(self.dimmer_g, state["rgbw"][1])
+        self.turn_on_in_thread(self.dimmer_b, state["rgbw"][2])
+        self.turn_on_in_thread(self.dimmer_w, state["rgbw"][3])
 
     def turn_on_in_thread(self, entity, brightness):
         Thread(target=self.call_service, args=["light/turn_on"], kwargs={"entity_id": entity, "brightness": brightness}).start()
